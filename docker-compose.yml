@@ -1,0 +1,10 @@
+services:
+  reoldify:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/app/models
+      - ./result_images:/app/result_images
+    environment:
+      - REOLDIFY_DEVICE=cpu

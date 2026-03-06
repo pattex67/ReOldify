@@ -16,6 +16,9 @@
 - **Fixed dependencies**: Resolved ffmpeg/ffmpeg-python conflicts
 - **Modern packaging**: `pyproject.toml` with proper dependency management
 - **Cross-platform**: Windows, Linux, macOS support
+- **REST API**: FastAPI server to colorize via HTTP
+- **Docker**: One-command deployment with Docker Compose
+- **CI/CD**: GitHub Actions for linting and testing
 
 ## Quick Start
 
@@ -77,6 +80,37 @@ The original notebooks are still available for interactive use:
 - `ImageColorizerColab.ipynb` — Image colorization (artistic)
 - `ImageColorizerColabStable.ipynb` — Image colorization (stable)
 - `VideoColorizerColab.ipynb` — Video colorization
+
+### REST API
+
+Serve the colorizer as an HTTP API:
+
+```bash
+pip install fastapi uvicorn python-multipart
+python -m deoldify.api
+```
+
+Then colorize images via HTTP:
+
+```bash
+curl -X POST http://localhost:8000/colorize \
+  -F "file=@old_photo.jpg" \
+  -F "model=artistic" \
+  -o colorized.png
+```
+
+### Docker
+
+```bash
+# Build and run
+docker compose up --build
+
+# Or just Docker
+docker build -t reoldify .
+docker run -p 8000:8000 -v ./models:/app/models reoldify
+```
+
+Place your model weights in the `models/` folder before starting.
 
 ## Pretrained Weights
 
