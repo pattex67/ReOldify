@@ -2,88 +2,75 @@
 
 **A community-driven continuation of [DeOldify](https://github.com/jantic/DeOldify)** — Deep Learning based colorization and restoration of old images and video.
 
-> DeOldify was created by [Jason Antic](https://github.com/jantic) in 2018 and archived in October 2024 after 6 incredible years. ReOldify picks up where it left off, with modernized dependencies, a proper CLI, and continued development.
-
-![Migrant Mother](https://i.imgur.com/Bt0vnke.jpg)
-*"Migrant Mother" by Dorothea Lange (1936) — colorized by DeOldify/ReOldify*
+> DeOldify was created by [Jason Antic](https://github.com/jantic) in 2018 and archived in October 2024. ReOldify picks up where it left off, with a modernized stack, a new state-of-the-art colorization engine (DDColor), and continued development.
 
 ---
 
 ## What's New in ReOldify
 
-- **Modernized stack**: Python 3.10+, PyTorch 2.x, updated Pillow & OpenCV
-- **CLI tool**: `reoldify colorize photo.jpg` — no Jupyter notebook needed
-- **Fixed dependencies**: Resolved ffmpeg/ffmpeg-python conflicts
-- **Modern packaging**: `pyproject.toml` with proper dependency management
-- **Cross-platform**: Windows, Linux, macOS support
+- **DDColor engine** (ICCV 2023): State-of-the-art colorization with significantly richer, more accurate colors
+- **Modernized stack**: Python 3.10+, PyTorch 2.x, updated dependencies
+- **CLI tool**: `reoldify colorize photo.jpg --model ddcolor --cpu`
 - **REST API**: FastAPI server to colorize via HTTP
 - **Docker**: One-command deployment with Docker Compose
 - **CI/CD**: GitHub Actions for linting and testing
+- **Modern packaging**: `pyproject.toml` with proper dependency management
 
 ## Quick Start
 
 ### Installation
 
 ```bash
-pip install git+https://github.com/pattex67/ReOldify.git
-```
-
-Or clone and install locally:
-
-```bash
 git clone https://github.com/pattex67/ReOldify.git
 cd ReOldify
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 pip install -e .
 ```
 
 ### CLI Usage
 
 ```bash
-# Colorize an image (artistic model - most colorful)
-reoldify colorize photo.jpg
+# Colorize with DDColor (best quality, weights auto-downloaded)
+reoldify colorize photo.jpg --model ddcolor --cpu
 
-# Use the stable model (better for portraits & landscapes)
-reoldify colorize photo.jpg --model stable
+# DDColor tiny (faster, lighter)
+reoldify colorize photo.jpg --model ddcolor-tiny --cpu
+
+# Legacy DeOldify models
+reoldify colorize photo.jpg --model artistic --cpu
+reoldify colorize photo.jpg --model stable --cpu
 
 # Colorize a video
-reoldify colorize video.mp4
+reoldify colorize video.mp4 --cpu
 
 # Adjust render quality (higher = better but slower, default: 35)
-reoldify colorize photo.jpg --render-factor 45
+reoldify colorize photo.jpg --model ddcolor --render-factor 45
 
 # Specify output path
-reoldify colorize photo.jpg -o colorized_photo.jpg
+reoldify colorize photo.jpg -o colorized_photo.jpg --model ddcolor --cpu
 ```
 
 ### Python API
 
 ```python
+from deoldify import device as device_settings
+from deoldify.device_id import DeviceId
+device_settings.set(DeviceId.CPU)
+
+# DDColor (recommended)
+from deoldify.visualize import get_ddcolor_image_colorizer
+colorizer = get_ddcolor_image_colorizer(model_name="ddcolor")
+result = colorizer.get_transformed_image("old_photo.jpg", render_factor=35, watermarked=False)
+result.save("colorized.jpg")
+
+# Legacy DeOldify
 from deoldify.visualize import get_image_colorizer
-
-# Artistic model (most vibrant colors)
 colorizer = get_image_colorizer(artistic=True)
-result_path = colorizer.plot_transformed_image(
-    path="old_photo.jpg",
-    render_factor=35,
-    watermarked=False
-)
-
-# Stable model (best for portraits)
-colorizer = get_image_colorizer(artistic=False)
-result_path = colorizer.plot_transformed_image(path="portrait.jpg")
+result = colorizer.get_transformed_image("old_photo.jpg", render_factor=35, watermarked=False)
+result.save("colorized.jpg")
 ```
 
-### Jupyter Notebooks
-
-The original notebooks are still available for interactive use:
-
-- `ImageColorizerColab.ipynb` — Image colorization (artistic)
-- `ImageColorizerColabStable.ipynb` — Image colorization (stable)
-- `VideoColorizerColab.ipynb` — Video colorization
-
 ### REST API
-
-Serve the colorizer as an HTTP API:
 
 ```bash
 pip install fastapi uvicorn python-multipart
@@ -95,79 +82,65 @@ Then colorize images via HTTP:
 ```bash
 curl -X POST http://localhost:8000/colorize \
   -F "file=@old_photo.jpg" \
-  -F "model=artistic" \
+  -F "model=ddcolor" \
   -o colorized.png
 ```
 
 ### Docker
 
 ```bash
-# Build and run
 docker compose up --build
-
-# Or just Docker
-docker build -t reoldify .
-docker run -p 8000:8000 -v ./models:/app/models reoldify
 ```
 
-Place your model weights in the `models/` folder before starting.
+## Available Models
 
-## Pretrained Weights
+| Model | Engine | CLI flag | Size | Best for |
+|-------|--------|----------|------|----------|
+| **DDColor** | DDColor (2023) | `--model ddcolor` | 912 MB | Best quality, general use |
+| **DDColor Tiny** | DDColor (2023) | `--model ddcolor-tiny` | 220 MB | Fast / CPU inference |
+| **Artistic** | DeOldify (2019) | `--model artistic` | 243 MB | Vibrant colors (legacy) |
+| **Stable** | DeOldify (2019) | `--model stable` | 243 MB | Portraits (legacy) |
+| **Video** | DeOldify (2019) | `--model video` | 243 MB | Video colorization |
 
-Download the weights and place them in the `models/` folder:
+**DDColor** weights are auto-downloaded from HuggingFace on first use.
 
-### Generator Weights (required for inference)
+**DeOldify** weights must be downloaded manually to the `models/` folder:
 
-| Model | Use Case | Download |
-|-------|----------|----------|
-| **Artistic** | Most colorful, best for general images | [Download](https://data.deepai.org/deoldify/ColorizeArtistic_gen.pth) |
-| **Stable** | Best for portraits & landscapes, fewer artifacts | [Download](https://www.dropbox.com/s/axsd2g85uyixaho/ColorizeStable_gen.pth?dl=0) |
-| **Video** | Optimized for smooth, flicker-free video | [Download](https://data.deepai.org/deoldify/ColorizeVideo_gen.pth) |
-
-## Three Models Explained
-
-- **Artistic** — Highest quality, most vibrant colors. Uses ResNet34 backbone with deep U-Net decoder. Best for general-purpose colorization but may need render_factor tuning.
-
-- **Stable** — Best for portraits and nature. Uses ResNet101 backbone with wide U-Net decoder. Fewer artifacts and "zombie" effects, slightly less colorful.
-
-- **Video** — Optimized for temporal consistency and flicker-free video output. Same architecture as stable but trained for smoothness.
+| Model | Download |
+|-------|----------|
+| Artistic | [ColorizeArtistic_gen.pth](https://data.deepai.org/deoldify/ColorizeArtistic_gen.pth) |
+| Stable | [ColorizeStable_gen.pth](https://www.dropbox.com/s/axsd2g85uyixaho/ColorizeStable_gen.pth?dl=0) |
+| Video | [ColorizeVideo_gen.pth](https://data.deepai.org/deoldify/ColorizeVideo_gen.pth) |
 
 ## Technical Background
 
-ReOldify uses the **NoGAN** training technique (developed by Jason Antic), which combines the benefits of GAN training with minimal direct GAN training time. The approach:
+### DDColor (ICCV 2023)
+DDColor uses a dual-decoder architecture: a pixel decoder restores spatial resolution while a query-based color decoder refines learnable color tokens via cross-attention. This produces richer, more accurate colors with fewer artifacts than previous approaches. Uses ConvNeXt as backbone encoder.
 
-1. Pretrain the generator with perceptual loss (VGG16-based)
-2. Train the critic on generated vs. real images
-3. Brief GAN training (1-3% of ImageNet data) to close the realism gap
-
-This produces colorful, artifact-free results — especially important for video consistency.
+### DeOldify (2019)
+DeOldify uses the **NoGAN** training technique, combining GAN training benefits with minimal direct GAN training time. Uses a U-Net architecture with ResNet34 (artistic) or ResNet101 (stable) backbones.
 
 ## Hardware Requirements
 
-- **Inference**: GPU with 4GB+ VRAM recommended (CPU works but slower)
-- **Training**: GPU with 11GB+ VRAM (e.g., RTX 3080 or better)
+- **Inference**: GPU recommended for speed. CPU works fine (especially with `ddcolor-tiny`)
+- **Training**: GPU with 11GB+ VRAM
 
-## Original Project
+## Credits
 
-ReOldify is a fork of [jantic/DeOldify](https://github.com/jantic/DeOldify), originally created by Jason Antic. All original code is under the MIT license. We are grateful for his pioneering work in image colorization.
-
-Related projects from the DeOldify ecosystem:
-- [sd-webui-deoldify](https://github.com/SpenserCai/sd-webui-deoldify) — Stable Diffusion Web UI plugin
-- [DeOldify.NET](https://github.com/ColorfulSoft/DeOldify.NET) — Windows GUI (no GPU required)
-- [DeOldify-on-Browser](https://github.com/akbartus/DeOldify-on-Browser) — ONNX-based browser implementation
+- [DeOldify](https://github.com/jantic/DeOldify) by Jason Antic (MIT License)
+- [DDColor](https://github.com/piddnad/DDColor) by Xiaoyang Kang et al. (Apache-2.0 License)
 
 ## Contributing
 
-Contributions are welcome! Areas where help is especially appreciated:
+Contributions are welcome! Areas where help is appreciated:
 
-- Integrating modern colorization techniques
-- ONNX/TensorRT export for fast inference
 - Improving color accuracy
+- ONNX/TensorRT export for fast inference
 - Adding batch processing support
-- Documentation and examples
+- Video support with DDColor
 
 ## License
 
 MIT License — see [LICENSE](LICENSE) for details.
 
-All pretrained weights are released under the MIT license by the original DeOldify authors.
+DDColor architecture code is derived from the [DDColor project](https://github.com/piddnad/DDColor) under the Apache-2.0 license.
