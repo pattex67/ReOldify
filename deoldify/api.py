@@ -35,9 +35,8 @@ app = FastAPI(
 _colorizers = {}
 
 
-def _get_colorizer(artistic: bool = True):
-    key = "artistic" if artistic else "stable"
-    if key not in _colorizers:
+def _get_colorizer(model: str = "artistic"):
+    if model not in _colorizers:
         from deoldify import device as device_settings
         from deoldify.device_id import DeviceId
 
@@ -47,12 +46,17 @@ def _get_colorizer(artistic: bool = True):
         else:
             device_settings.set(DeviceId.GPU0)
 
-        from deoldify.visualize import get_image_colorizer
-
-        logger.info(f"Loading {key} colorizer...")
-        _colorizers[key] = get_image_colorizer(artistic=artistic)
-        logger.info(f"{key} colorizer loaded.")
-    return _colorizers[key]
+        if model in ("ddcolor", "ddcolor-tiny"):
+            from deoldify.visualize import get_ddcolor_image_colorizer
+            logger.info(f"Loading {model} colorizer...")
+            _colorizers[model] = get_ddcolor_image_colorizer(model_name=model)
+        else:
+            from deoldify.visualize import get_image_colorizer
+            artistic = model == "artistic"
+            logger.info(f"Loading {model} colorizer...")
+            _colorizers[model] = get_image_colorizer(artistic=artistic)
+        logger.info(f"{model} colorizer loaded.")
+    return _colorizers[model]
 
 
 @app.get("/")
@@ -75,7 +79,7 @@ def health():
 @app.post("/colorize")
 async def colorize(
     file: UploadFile = File(..., description="Image file to colorize (JPEG, PNG)"),
-    model: str = Query("artistic", enum=["artistic", "stable"], description="Model to use"),
+    model: str = Query("artistic", enum=["artistic", "stable", "ddcolor", "ddcolor-tiny"], description="Model to use"),
     render_factor: int = Query(35, ge=5, le=50, description="Render quality factor"),
     watermark: bool = Query(False, description="Add watermark to output"),
 ):
@@ -95,8 +99,7 @@ async def colorize(
         tmp_path = Path(tmp.name)
 
     try:
-        artistic = model == "artistic"
-        colorizer = _get_colorizer(artistic=artistic)
+        colorizer = _get_colorizer(model=model)
 
         result_image = colorizer.get_transformed_image(
             path=tmp_path,

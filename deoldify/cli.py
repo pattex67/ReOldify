@@ -17,9 +17,9 @@ def main():
     colorize_parser.add_argument(
         "--model",
         type=str,
-        choices=["artistic", "stable", "video"],
+        choices=["artistic", "stable", "video", "ddcolor", "ddcolor-tiny"],
         default=None,
-        help="Model to use (default: artistic for images, video for videos)",
+        help="Model to use (default: artistic for images, video for videos). ddcolor/ddcolor-tiny use the modern DDColor engine (ICCV 2023).",
     )
     colorize_parser.add_argument(
         "--render-factor",
@@ -86,13 +86,16 @@ def _run_colorize(args):
 
 
 def _colorize_image(input_path, output_path, model, render_factor, watermarked):
-    from deoldify.visualize import get_image_colorizer
-
     print(f"Colorizing image: {input_path}")
     print(f"Model: {model} | Render factor: {render_factor}")
 
-    artistic = model == "artistic"
-    colorizer = get_image_colorizer(artistic=artistic, render_factor=render_factor)
+    if model in ("ddcolor", "ddcolor-tiny"):
+        from deoldify.visualize import get_ddcolor_image_colorizer
+        colorizer = get_ddcolor_image_colorizer(model_name=model, render_factor=render_factor)
+    else:
+        from deoldify.visualize import get_image_colorizer
+        artistic = model == "artistic"
+        colorizer = get_image_colorizer(artistic=artistic, render_factor=render_factor)
 
     output_dir = output_path.parent
     output_dir.mkdir(parents=True, exist_ok=True)

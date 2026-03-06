@@ -468,6 +468,19 @@ def get_artistic_image_colorizer(
     return vis
 
 
+def get_ddcolor_image_colorizer(
+    model_name: str = 'ddcolor',
+    results_dir='result_images',
+    render_factor: int = 35,
+    device=None,
+) -> ModelImageVisualizer:
+    """Get a DDColor-based image colorizer (ICCV 2023, state-of-the-art)."""
+    from deoldify.ddcolor.filter import DDColorFilter
+    filtr = DDColorFilter(model_name=model_name, device=device)
+    vis = ModelImageVisualizer(filtr, results_dir=results_dir)
+    return vis
+
+
 def show_image_in_notebook(image_path: Path):
     ipythondisplay.display(ipythonimage(str(image_path)))
 
