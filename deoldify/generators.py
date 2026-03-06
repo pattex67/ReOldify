@@ -15,7 +15,7 @@ def gen_inference_wide(
     learn = gen_learner_wide(
         data=data, gen_loss=F.l1_loss, nf_factor=nf_factor, arch=arch
     )
-    learn.path = root_folder
+    learn.path = Path(root_folder)
     learn.load(weights_name)
     learn.model.eval()
     return learn
@@ -88,7 +88,7 @@ def gen_inference_deep(
     learn = gen_learner_deep(
         data=data, gen_loss=F.l1_loss, arch=arch, nf_factor=nf_factor
     )
-    learn.path = root_folder
+    learn.path = Path(root_folder)
     learn.load(weights_name)
     learn.model.eval()
     return learn

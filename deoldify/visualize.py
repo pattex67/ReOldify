@@ -220,7 +220,7 @@ class VideoColorizer:
 
     def _purge_images(self, dir):
         for f in os.listdir(dir):
-            if re.search('.*?\.jpg', f):
+            if re.search(r'.*?\.jpg', f):
                 os.remove(os.path.join(dir, f))
 
     def _get_ffmpeg_probe(self, path:Path):

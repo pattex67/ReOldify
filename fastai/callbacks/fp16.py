@@ -2,8 +2,17 @@
 from ..torch_core import *
 from ..callback import *
 from ..basic_train import *
-from torch._utils import _unflatten_dense_tensors
 from torch.nn.utils import parameters_to_vector
+
+def _unflatten_dense_tensors(flat, tensors):
+    "Unflatten a flat tensor into a list of tensors shaped like `tensors`."
+    outputs = []
+    offset = 0
+    for tensor in tensors:
+        numel = tensor.numel()
+        outputs.append(flat.narrow(0, offset, numel).view_as(tensor))
+        offset += numel
+    return outputs
 
 __all__ = ['MixedPrecision']
 

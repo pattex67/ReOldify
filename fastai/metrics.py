@@ -237,7 +237,7 @@ class KappaScore(ConfusionMatrix):
     def on_epoch_end(self, last_metrics, **kwargs):
         sum0 = self.cm.sum(dim=0)
         sum1 = self.cm.sum(dim=1)
-        expected = torch.einsum('i,j->ij', (sum0, sum1)) / sum0.sum()
+        expected = torch.einsum('i,j->ij', sum0, sum1) / sum0.sum()
         if self.weights is None:
             w = torch.ones((self.n_classes, self.n_classes))
             w[self.x, self.x] = 0

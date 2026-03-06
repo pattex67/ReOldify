@@ -74,7 +74,7 @@ class PooledSelfAttention2d(Module):
         theta = theta.view(-1, self.n_channels // 8, x.shape[2] * x.shape[3])
         phi = phi.view(-1, self.n_channels // 8, x.shape[2] * x.shape[3] // 4)
         g = g.view(-1, self.n_channels // 2, x.shape[2] * x.shape[3] // 4)
-        beta = F.softmax(torch.bmm(theta.transpose(1, 2), phi), -1)
+        beta = F.softmax(torch.bmm(theta.transpose(1, 2), phi), dim=-1)
         o = self.o(torch.bmm(g, beta.transpose(1,2)).view(-1, self.n_channels // 2, x.shape[2], x.shape[3]))
         return self.gamma * o + x
 
@@ -199,7 +199,7 @@ def icnr(x, scale=2, init=nn.init.kaiming_normal_):
     k = k.contiguous().view(ni2, nf, -1)
     k = k.repeat(1, 1, scale**2)
     k = k.contiguous().view([nf,ni,h,w]).transpose(0, 1)
-    x.data.copy_(k)
+    with torch.no_grad(): x.copy_(k)
 
 class PixelShuffle_ICNR(Module):
     "Upsample by `scale` from `ni` filters to `nf` (default `ni`), using `nn.PixelShuffle`, `icnr` init, and `weight_norm`."

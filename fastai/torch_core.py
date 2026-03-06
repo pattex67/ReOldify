@@ -242,7 +242,8 @@ def init_default(m:nn.Module, func:LayerFunc=nn.init.kaiming_normal_)->nn.Module
     "Initialize `m` weights with `func` and set `bias` to 0."
     if func:
         if hasattr(m, 'weight'): func(m.weight)
-        if hasattr(m, 'bias') and hasattr(m.bias, 'data'): m.bias.data.fill_(0.)
+        if hasattr(m, 'bias') and m.bias is not None:
+            with torch.no_grad(): m.bias.fill_(0.)
     return m
 
 def cond_init(m:nn.Module, init_func:LayerFunc):
@@ -309,7 +310,7 @@ def np2model_tensor(a):
 def _pca(x, k=2):
     "Compute PCA of `x` with `k` dimensions."
     x = x-torch.mean(x,0)
-    U,S,V = torch.svd(x.t())
+    U,S,Vh = torch.linalg.svd(x.t(), full_matrices=False)
     return torch.mm(x,U[:,:k])
 torch.Tensor.pca = _pca
 
@@ -319,7 +320,7 @@ def trange_of(x):
 
 def to_np(x): 
     "Convert a tensor to a numpy array."
-    return x.data.cpu().numpy()
+    return x.detach().cpu().numpy()
 
 # monkey patching to allow matplotlib to plot tensors
 def tensor__array__(self, dtype=None):
