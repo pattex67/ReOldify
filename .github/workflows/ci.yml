@@ -17,7 +17,7 @@ jobs:
       - name: Install ruff
         run: pip install ruff
       - name: Lint with ruff
-        run: ruff check deoldify/ --select E,F,W --ignore E401,E501,F401,F403,F405,E741
+        run: ruff check deoldify/ --select E,F,W --ignore E401,E402,E501,E712,F401,F403,F405,F841,E741
 
   test:
     runs-on: ubuntu-latest

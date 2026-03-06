@@ -15,7 +15,7 @@ def get_colorize_data(
     stats: tuple = imagenet_stats,
     xtra_tfms=[],
 ) -> ImageDataBunch:
-    
+
     src = (
         ImageImageList.from_folder(crappy_path, convert_mode='RGB')
         .use_partial_data(sample_pct=keep_pct, seed=random_seed)
