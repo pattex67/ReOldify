@@ -1,0 +1,77 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "reoldify"
+version = "1.0.0"
+description = "Deep Learning library for colorizing and restoring old images and video — a continuation of DeOldify"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Jason Antic (original DeOldify)"},
+    {name = "ReOldify Contributors"},
+]
+keywords = ["deep-learning", "colorization", "image-restoration", "GAN", "computer-vision"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: Jupyter",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "torch>=2.0.0",
+    "torchvision>=0.15.0",
+    "Pillow>=10.0.0",
+    "opencv-python>=4.8.0",
+    "ffmpeg-python>=0.2.0",
+    "yt-dlp>=2023.0",
+    "numpy>=1.24.0",
+    "matplotlib>=3.7.0",
+    "requests>=2.28.0",
+    "ipywidgets>=8.0.0",
+    "tqdm>=4.65.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "ruff>=0.1.0",
+    "pre-commit>=3.0",
+]
+jupyter = [
+    "jupyterlab>=4.0",
+    "ipywidgets>=8.0",
+]
+training = [
+    "wandb>=0.15.0",
+    "tensorboard>=2.13.0",
+]
+
+[project.scripts]
+reoldify = "deoldify.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/pattex67/ReOldify"
+Repository = "https://github.com/pattex67/ReOldify"
+"Original Project" = "https://github.com/jantic/DeOldify"
+
+[tool.setuptools.packages.find]
+include = ["deoldify*", "fastai*"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

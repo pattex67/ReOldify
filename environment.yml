@@ -1,23 +1,22 @@
-name: deoldify
+name: reoldify
 channels:
-- fastai
+- pytorch
 - conda-forge
 - defaults
 dependencies:
+- python>=3.10
 - pip
-- fastai=1.0.60
-- mkl=2024.0
-- python=3.10
-- pytorch::pytorch=1.11.0
-- pytorch::torchvision
+- pytorch::pytorch>=2.0
+- pytorch::torchvision>=0.15
 - pytorch::torchaudio
-- tensorboardX
-- jupyterlab
-- pillow>=9.0.0
-- ipywidgets
+- jupyterlab>=4.0
+- ipywidgets>=8.0
 - ffmpeg
 - pip:
-  - ffmpeg-python
-  - opencv-python>=4.2.0.32
-  - wandb
-  - yt-dlp
+  - ffmpeg-python>=0.2.0
+  - opencv-python>=4.8.0
+  - Pillow>=10.0.0
+  - yt-dlp>=2023.0
+  - requests>=2.28.0
+  - tqdm>=4.65.0
+  - matplotlib>=3.7.0
